@@ -55,45 +55,61 @@ export default function PWAInstallBanner() {
   return (
     <AnimatePresence>
       {showBanner && (
-        <motion.div
-          initial={{ y: -80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -80, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-sm"
-        >
-          <div className="relative rounded-2xl border border-border bg-card p-4 shadow-xl">
-            <button
-              onClick={handleDismiss}
-              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+        <>
+          {/* Overlay semi-transparent */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+            onClick={handleDismiss}
+          />
+          {/* Popup centrée */}
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.85, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2"
+          >
+            <div className="relative rounded-2xl border border-border bg-card p-6 shadow-2xl">
+              <button
+                onClick={handleDismiss}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
 
-            <div className="flex items-start gap-3 pr-6">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <Download className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-display font-bold text-foreground text-sm">Installer TKLINK</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {isIOS
-                    ? "Appuyez sur Partager puis « Sur l'écran d'accueil »"
-                    : "Accédez à l'app en un clic depuis votre écran d'accueil"}
-                </p>
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                  <Download className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <p className="font-display font-bold text-foreground text-base">Installer TKLINK</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {isIOS
+                      ? "Appuyez sur Partager puis « Sur l'écran d'accueil »"
+                      : "Accédez à l'app en un clic depuis votre écran d'accueil"}
+                  </p>
+                </div>
                 {isIOS ? (
-                  <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Share className="h-3.5 w-3.5" /> → Sur l'écran d'accueil
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Share className="h-4 w-4" /> → Sur l'écran d'accueil
                   </div>
                 ) : (
-                  <Button size="sm" className="mt-2 h-7 text-xs" onClick={handleInstall}>
-                    Installer
-                  </Button>
+                  <div className="flex gap-2 w-full mt-1">
+                    <Button variant="outline" className="flex-1" onClick={handleDismiss}>
+                      Plus tard
+                    </Button>
+                    <Button className="flex-1" onClick={handleInstall}>
+                      Installer
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
   );
