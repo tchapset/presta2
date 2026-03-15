@@ -1,0 +1,1 @@
+ALTER TABLE public.reviews ALTER COLUMN mission_id DROP NOT NULL;

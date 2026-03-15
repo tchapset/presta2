@@ -1,0 +1,1 @@
+CREATE POLICY "Mission participants delete messages" ON public.messages FOR DELETE USING (EXISTS ( SELECT 1 FROM missions WHERE (missions.id = messages.mission_id) AND ((missions.client_id = auth.uid()) OR (missions.provider_id = auth.uid()))));
