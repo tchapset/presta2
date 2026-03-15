@@ -165,19 +165,30 @@ const EditProfile = () => {
   }, []);
 
   const useCurrentLocation = () => {
+    toast.info("Récupération de votre position...");
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+        // Forcer la mise à jour du formulaire avec la position GPS actuelle
+        // en ignorant tout déplacement manuel précédent
         setForm(f => ({ ...f, latitude: lat, longitude: lng }));
         if (mapInstanceRef.current && markerRef.current) {
-          mapInstanceRef.current.flyTo([lat, lng], 15);
+          mapInstanceRef.current.flyTo([lat, lng], 17);
           markerRef.current.setLatLng([lat, lng]);
         }
-        toast.success("Position mise à jour");
+        toast.success(`Position mise à jour (précision: ~${Math.round(pos.coords.accuracy)}m)`);
       },
-      () => toast.error("Impossible d'obtenir votre position"),
-      { enableHighAccuracy: true }
+      (err) => {
+        if (err.code === 1) {
+          toast.error("Accès à la localisation refusé. Vérifiez les permissions de votre navigateur.");
+        } else if (err.code === 2) {
+          toast.error("Position introuvable. Vérifiez que le GPS est activé.");
+        } else {
+          toast.error("Délai dépassé. Réessayez.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
