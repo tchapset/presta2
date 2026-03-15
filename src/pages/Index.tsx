@@ -13,11 +13,11 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "TKLINK",
-  url: "https://YOUR_VERCEL_URL.vercel.app",
+  url: "https://presta2.vercel.app",
   description: "La marketplace sécurisée pour les services locaux au Cameroun. Trouvez plombiers, électriciens et prestataires vérifiés.",
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://YOUR_VERCEL_URL.vercel.app/recherche?q={search_term_string}",
+    target: "https://presta2.vercel.app/recherche?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
 };
@@ -26,8 +26,8 @@ const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "TKLINK",
-  url: "https://YOUR_VERCEL_URL.vercel.app",
-  logo: "https://YOUR_VERCEL_URL.vercel.app/serviko-logo.png",
+  url: "https://presta2.vercel.app",
+  logo: "https://presta2.vercel.app/serviko-logo.png",
   sameAs: [],
   contactPoint: {
     "@type": "ContactPoint",
@@ -43,7 +43,7 @@ const Index = () => {
       <SEOHead
         title="TKLINK - Services locaux vérifiés au Cameroun"
         description="Trouvez et contactez des prestataires de services vérifiés au Cameroun. Plomberie, électricité, ménage, informatique et plus. Avis clients, paiement sécurisé."
-        canonical="https://YOUR_VERCEL_URL.vercel.app/"
+        canonical="https://presta2.vercel.app/"
         jsonLd={[jsonLd, orgJsonLd] as any}
       />
       <Navbar />

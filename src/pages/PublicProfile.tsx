@@ -79,7 +79,7 @@ const PublicProfile = () => {
     "@type": "LocalBusiness",
     name: profile.full_name,
     description: profile.bio || `Prestataire de services sur TKLINK`,
-    url: `https://YOUR_VERCEL_URL.vercel.app/p/${profile.full_name.toLowerCase().replace(/\s+/g, "-")}`,
+    url: `https://presta2.vercel.app/p/${profile.full_name.toLowerCase().replace(/\s+/g, "-")}`,
     address: {
       "@type": "PostalAddress",
       addressLocality: profile.city || "Cameroun",
