@@ -91,7 +91,7 @@ const ProviderMap = ({ providers, userPosition, center, reviewCounts = {}, revie
       .map(p => ({
         ...p,
         coords: getCoords(p)!,
-        offset: (p.latitude && p.longitude) ? [0, 0] as [number, number] : [Math.random() * 0.008 - 0.004, Math.random() * 0.008 - 0.004] as [number, number],
+        offset: [0, 0] as [number, number],
       }));
 
     const mapCenter: [number, number] = center
@@ -133,9 +133,10 @@ const ProviderMap = ({ providers, userPosition, center, reviewCounts = {}, revie
                 const latlng: [number, number] = [pos.coords.latitude, pos.coords.longitude];
                 L.marker(latlng, { icon: userIcon }).addTo(map)
                   .bindPopup('<p style="font-weight:bold;margin:0;">📍 Votre position</p>');
-                map.flyTo(latlng, 14);
+                map.flyTo(latlng, 16);
               },
-              () => { /* silently fail */ }
+              () => { /* silently fail */ },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
             );
           }
         };

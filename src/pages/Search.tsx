@@ -60,7 +60,7 @@ const SearchPage = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => setUserPosition([pos.coords.latitude, pos.coords.longitude]),
       () => {},
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   }, []);
 
