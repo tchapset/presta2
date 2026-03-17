@@ -32,6 +32,7 @@ import GlobalCallListener from "./components/GlobalCallListener";
 import PWAInstallBanner from "./components/PWAInstallBanner";
 import RealtimeMessageToast from "./components/RealtimeMessageToast";
 import OnboardingGuide from "./components/OnboardingGuide";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ function App() {
                 <PWAInstallBanner />
                 
                 <OnboardingGuide />
+                <MobileBottomNav />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/recherche" element={<SearchPage />} />
