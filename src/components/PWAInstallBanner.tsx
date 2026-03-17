@@ -65,20 +65,17 @@ export default function PWAInstallBanner() {
             onClick={handleDismiss}
           />
 
-          {/* Popup centrée — s'adapte à toutes les tailles d'écran */}
+          {/* Popup centrée — tous appareils */}
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+          >
           <motion.div
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.85, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="
-              fixed left-1/2 top-1/2 z-50
-              -translate-x-1/2 -translate-y-1/2
-              w-[92vw]
-              sm:w-[420px]
-              md:w-[480px]
-              lg:w-[520px]
-            "
+            className="pointer-events-auto"
+            style={{ width: "min(92vw, 480px)" }}
           >
             <div className="relative rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
               {/* Header coloré */}
@@ -129,7 +126,7 @@ export default function PWAInstallBanner() {
                 ) : (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Accédez à PRESTA237 en un clic, même sans connexion internet.
+                      Accédez à PRESTA237 en un clic depuis votre écran d'accueil.
                     </p>
 
                     {/* Avantages */}
@@ -162,6 +159,7 @@ export default function PWAInstallBanner() {
               </div>
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
