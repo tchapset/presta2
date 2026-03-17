@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +39,9 @@ const RoleSelection = () => {
   const [newSkill, setNewSkill] = useState("");
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [locating, setLocating] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ["categories-full"],
@@ -94,23 +99,95 @@ const RoleSelection = () => {
       return;
     }
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setProviderForm(f => ({ ...f, latitude: pos.coords.latitude, longitude: pos.coords.longitude }));
+
+    const onSuccess = (pos: GeolocationPosition) => {
+      setProviderForm(f => ({ ...f, latitude: pos.coords.latitude, longitude: pos.coords.longitude }));
+      setLocating(false);
+      toast.success(t(`Position détectée ! (précision ~${Math.round(pos.coords.accuracy)}m)`, `Location detected! (~${Math.round(pos.coords.accuracy)}m accuracy)`));
+    };
+
+    const onError = (err: GeolocationPositionError) => {
+      if (err.code === 1) {
+        // Permission refusée - pas de fallback possible
         setLocating(false);
-        toast.success(t("Position détectée !", "Location detected!"));
-      },
-      (err) => {
-        setLocating(false);
-        if (err.code === 1) {
-          toast.error(t("Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur", "Please allow geolocation in your browser settings"));
-        } else {
-          toast.error(t("Impossible de détecter la position", "Unable to detect position"));
-        }
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        toast.error(t("Accès à la localisation refusé. Activez-la dans les paramètres de votre navigateur.", "Location access denied. Please enable it in your browser settings."));
+      } else {
+        // Timeout ou position indisponible → réessayer avec précision normale
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          () => {
+            setLocating(false);
+            toast.error(t("Impossible de détecter la position. Vérifiez que le GPS est activé.", "Unable to detect position. Please check that GPS is enabled."));
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        );
+      }
+    };
+
+    // Essai 1 : haute précision
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, 
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
+
+  // Initialiser/mettre à jour la carte quand lat/lng change
+  const initOrUpdateMap = useCallback((lat: number, lng: number) => {
+    if (!mapRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      // Fix icônes Leaflet
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+      });
+
+      const map = L.map(mapRef.current).setView([lat, lng], 16);
+      mapInstanceRef.current = map;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap',
+      }).addTo(map);
+
+      const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      markerRef.current = marker;
+
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        setProviderForm(f => ({ ...f, latitude: pos.lat, longitude: pos.lng }));
+        toast.success("Position ajustée !");
+      });
+
+      map.on("click", (e: any) => {
+        marker.setLatLng(e.latlng);
+        setProviderForm(f => ({ ...f, latitude: e.latlng.lat, longitude: e.latlng.lng }));
+        toast.success("Position ajustée !");
+      });
+
+      setTimeout(() => map.invalidateSize(), 200);
+    } else {
+      mapInstanceRef.current.flyTo([lat, lng], 16);
+      markerRef.current?.setLatLng([lat, lng]);
+    }
+  }, []);
+
+  // Mettre à jour la carte quand la position change
+  useEffect(() => {
+    if (providerForm.latitude && providerForm.longitude) {
+      setTimeout(() => initOrUpdateMap(providerForm.latitude!, providerForm.longitude!), 100);
+    }
+  }, [providerForm.latitude, providerForm.longitude]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   const addSkill = () => {
     const s = newSkill.trim();
@@ -397,19 +474,35 @@ const RoleSelection = () => {
             </div>
 
             {/* Geolocation */}
-            <div className="flex items-center gap-3">
-              <Button type="button" variant={providerForm.latitude ? "outline" : "default"} size="sm" onClick={detectLocation} disabled={locating} className="gap-1.5">
-                <MapPin className="w-4 h-4" />
-                {locating ? t("Détection...", "Detecting...") : t("Détecter ma position", "Detect my location")}
-              </Button>
-              {providerForm.latitude ? (
-                <span className="text-xs text-green-600 font-medium">
-                  ✅ {t("Position enregistrée", "Location saved")}
-                </span>
-              ) : (
-                <span className="text-xs text-destructive">
-                  ⚠️ {t("Position obligatoire pour apparaître sur la carte", "Position required to appear on map")}
-                </span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Button type="button" variant={providerForm.latitude ? "outline" : "default"} size="sm" onClick={detectLocation} disabled={locating} className="gap-1.5">
+                  <MapPin className="w-4 h-4" />
+                  {locating ? t("Détection...", "Detecting...") : t("Détecter ma position", "Detect my location")}
+                </Button>
+                {providerForm.latitude ? (
+                  <span className="text-xs text-green-600 font-medium">
+                    ✅ {t("Position enregistrée", "Location saved")}
+                  </span>
+                ) : (
+                  <span className="text-xs text-destructive">
+                    ⚠️ {t("Position obligatoire pour apparaître sur la carte", "Position required to appear on map")}
+                  </span>
+                )}
+              </div>
+
+              {/* Carte interactive après détection */}
+              {providerForm.latitude && providerForm.longitude && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    📍 {t("Glissez le marqueur ou cliquez sur la carte pour ajuster votre position", "Drag the marker or click the map to adjust your position")}
+                  </p>
+                  <div
+                    ref={mapRef}
+                    style={{ height: "220px", width: "100%", borderRadius: "12px", overflow: "hidden", zIndex: 0 }}
+                    className="border border-border"
+                  />
+                </div>
               )}
             </div>
 
