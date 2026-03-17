@@ -398,13 +398,17 @@ const RoleSelection = () => {
 
             {/* Geolocation */}
             <div className="flex items-center gap-3">
-              <Button type="button" variant="outline" size="sm" onClick={detectLocation} disabled={locating} className="gap-1.5">
+              <Button type="button" variant={providerForm.latitude ? "outline" : "default"} size="sm" onClick={detectLocation} disabled={locating} className="gap-1.5">
                 <MapPin className="w-4 h-4" />
                 {locating ? t("Détection...", "Detecting...") : t("Détecter ma position", "Detect my location")}
               </Button>
-              {providerForm.latitude && (
-                <span className="text-xs text-muted-foreground">
+              {providerForm.latitude ? (
+                <span className="text-xs text-green-600 font-medium">
                   ✅ {t("Position enregistrée", "Location saved")}
+                </span>
+              ) : (
+                <span className="text-xs text-destructive">
+                  ⚠️ {t("Position obligatoire pour apparaître sur la carte", "Position required to appear on map")}
                 </span>
               )}
             </div>
@@ -450,7 +454,8 @@ const RoleSelection = () => {
 
             {/* Gallery */}
             <div>
-              <Label>{t("Photos de réalisations (max 10)", "Portfolio photos (max 10)")}</Label>
+              <Label>{t("Photos de réalisations *", "Portfolio photos *")}</Label>
+              <p className="text-xs text-destructive mb-1">{galleryFiles.length === 0 ? t("Au moins 1 photo est obligatoire", "At least 1 photo is required") : ""}</p>
               <label className="mt-2 flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-6 h-6 text-muted-foreground mb-1" />
                 <span className="text-sm text-muted-foreground">{t("Cliquer pour ajouter des photos", "Click to add photos")}</span>
@@ -481,7 +486,7 @@ const RoleSelection = () => {
                 className="flex-1"
                 size="lg"
                 onClick={submitRole}
-                disabled={loading || !providerForm.category || !providerForm.bio || !providerForm.city}
+                disabled={loading || !providerForm.category || !providerForm.bio || !providerForm.city || galleryFiles.length === 0 || !providerForm.latitude}
               >
                 {loading ? t("Configuration...", "Setting up...") : t("Valider mon profil", "Confirm my profile")}
               </Button>

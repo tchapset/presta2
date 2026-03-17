@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import { useLang } from "./LanguageToggle";
 
 const placeholderReviews = [
-  { id: "p1", rating: 5, comment: "PRESTA237 m'a permis de trouver un plombier fiable en 10 minutes. Service au top !", reviewer_name: "Marie K.", created_at: "2025-12-15" },
-  { id: "p2", rating: 4, comment: "Plateforme très intuitive, le système de paiement sécurisé me rassure énormément.", reviewer_name: "Paul N.", created_at: "2025-11-20" },
-  { id: "p3", rating: 5, comment: "Grâce à PRESTA237 j'ai doublé ma clientèle. Indispensable pour les prestataires !", reviewer_name: "Aïcha M.", created_at: "2025-10-08" },
+  { id: "p1", rating: 5, comment: "PRESTA237 m'a permis de trouver un plombier fiable en 10 minutes. Service au top !", reviewer_name: "Marie K.", created_at: "2026-01-15" },
+  { id: "p2", rating: 4, comment: "Plateforme très intuitive, le système de paiement sécurisé me rassure énormément.", reviewer_name: "Paul N.", created_at: "2026-02-10" },
+  { id: "p3", rating: 5, comment: "Grâce à PRESTA237 j'ai doublé ma clientèle. Indispensable pour les prestataires !", reviewer_name: "Aïcha M.", created_at: "2026-03-05" },
 ];
 
 const ClientReviews = () => {

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Save, Upload, X, Plus, MessageCircle, MapPin, Trash2 } from "lucide-react";
+import { Save, Share2, Upload, X, Plus, MessageCircle, MapPin, Trash2 } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -503,6 +503,27 @@ const EditProfile = () => {
               </>
             )}
 
+            {isProvider && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => {
+                  const slug = (form.full_name || "").toLowerCase().trim()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                  const shareUrl = `https://presta237.com/p/${slug}`;
+                  if (navigator.share) {
+                    navigator.share({ title: `Mon profil sur PRESTA237`, text: `Découvrez mon profil sur PRESTA237`, url: shareUrl }).catch(() => {});
+                  } else {
+                    navigator.clipboard.writeText(shareUrl);
+                    import("sonner").then(({ toast }) => toast.success("Lien copié : " + shareUrl));
+                  }
+                }}
+              >
+                <Share2 className="w-4 h-4" /> Partager mon profil
+              </Button>
+            )}
             <Button className="w-full" size="lg" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
               <Save className="w-4 h-4 mr-2" />{updateMutation.isPending ? "Enregistrement..." : "Enregistrer les modifications"}
             </Button>

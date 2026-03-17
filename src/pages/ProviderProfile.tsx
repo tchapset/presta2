@@ -200,13 +200,15 @@ const ProviderProfile = () => {
                     <MessageSquare className="w-4 h-4" /> {contactLoading ? "..." : "Contacter"}
                   </Button>
                   <Button variant="outline" size="icon" onClick={() => {
-                    const slug = profile.full_name.toLowerCase().trim().replace(/\s+/g, "-");
-                    const shareUrl = `${window.location.origin}/p/${slug}`;
+                    const slug = profile.full_name.toLowerCase().trim()
+                      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    const shareUrl = `https://presta237.com/p/${slug}`;
                     if (navigator.share) {
-                      navigator.share({ title: `${profile.full_name} sur PRESTA237`, url: shareUrl }).catch(() => {});
+                      navigator.share({ title: `${profile.full_name} sur PRESTA237`, text: `Découvrez ${profile.full_name}, prestataire sur PRESTA237`, url: shareUrl }).catch(() => {});
                     } else {
                       navigator.clipboard.writeText(shareUrl);
-                      toast.success("Lien copié !");
+                      toast.success("Lien copié : " + shareUrl);
                     }
                   }}>
                     <Share2 className="w-4 h-4" />
