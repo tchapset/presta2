@@ -108,7 +108,7 @@ const RoleSelection = () => {
           toast.error(t("Impossible de détecter la position", "Unable to detect position"));
         }
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
