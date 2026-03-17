@@ -306,7 +306,14 @@ const Admin = () => {
   });
 
   if (authLoading || roleLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><p className="text-muted-foreground">Chargement...</p></div>;
-  if (!user || !isAdmin) return <Navigate to="/dashboard" replace />;
+  // Attendre que auth et role soient chargés avant de rediriger
+  if (authLoading || roleLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   const tabs = [
     { id: "users" as const, label: "Utilisateurs", icon: Users, count: allProfiles?.length },
