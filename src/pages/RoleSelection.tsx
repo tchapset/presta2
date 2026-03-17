@@ -57,10 +57,9 @@ const RoleSelection = () => {
       if (!user) return;
       setLoading(true);
       try {
-        await supabase.from("user_roles").delete().eq("user_id", user.id);
         const { error: roleError } = await supabase
           .from("user_roles")
-          .insert({ user_id: user.id, role: "client" });
+          .upsert({ user_id: user.id, role: "client" }, { onConflict: "user_id" });
         if (roleError) throw roleError;
 
         await supabase.from("profiles").upsert({
@@ -147,10 +146,9 @@ const RoleSelection = () => {
     setLoading(true);
 
     try {
-      await supabase.from("user_roles").delete().eq("user_id", user.id);
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({ user_id: user.id, role: selectedRole });
+        .upsert({ user_id: user.id, role: selectedRole }, { onConflict: "user_id" });
       if (roleError) throw roleError;
 
       if (selectedRole === "provider") {
