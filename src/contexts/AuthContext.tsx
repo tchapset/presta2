@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-const ROLE_CACHE_KEY = "tklink-role-checked";
+const ROLE_CACHE_KEY = "presta237-role-checked";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

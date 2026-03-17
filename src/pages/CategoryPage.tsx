@@ -46,11 +46,11 @@ const CategoryPage = () => {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: `${decodedName} au Cameroun - TKLINK`,
+    name: `${decodedName} au Cameroun - PRESTA237`,
     description: `Trouvez les meilleurs prestataires de ${decodedName.toLowerCase()} au Cameroun. Profils vérifiés, avis clients et devis gratuits.`,
     provider: {
       "@type": "Organization",
-      name: "TKLINK",
+      name: "PRESTA237",
     },
     areaServed: {
       "@type": "Country",
@@ -61,8 +61,8 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${decodedName} au Cameroun - Prestataires vérifiés | TKLINK`}
-        description={`Trouvez les meilleurs prestataires de ${decodedName.toLowerCase()} au Cameroun. Comparez les avis, prix et disponibilités sur TKLINK.`}
+        title={`${decodedName} au Cameroun - Prestataires vérifiés | PRESTA237`}
+        description={`Trouvez les meilleurs prestataires de ${decodedName.toLowerCase()} au Cameroun. Comparez les avis, prix et disponibilités sur PRESTA237.`}
         jsonLd={jsonLd}
       />
       <Navbar />

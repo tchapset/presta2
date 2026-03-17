@@ -67,7 +67,7 @@ const RoleSelection = () => {
           user_id: user.id,
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || "",
           is_provider: false,
-          bio: "Client TKLINK",
+          bio: "Client PRESTA237",
         }, { onConflict: "user_id" });
 
         queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -188,7 +188,7 @@ const RoleSelection = () => {
           }, { onConflict: "user_id" });
         if (profileError) throw profileError;
       } else {
-        await supabase.from("profiles").upsert({ user_id: user.id, full_name: user.user_metadata?.full_name || user.user_metadata?.name || "", is_provider: false, bio: "Client TKLINK" }, { onConflict: "user_id" });
+        await supabase.from("profiles").upsert({ user_id: user.id, full_name: user.user_metadata?.full_name || user.user_metadata?.name || "", is_provider: false, bio: "Client PRESTA237" }, { onConflict: "user_id" });
       }
 
       queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -215,7 +215,7 @@ const RoleSelection = () => {
   if (isOffline) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 gap-6">
-        <img src="/serviko-logo.png" alt="TKLINK" className="w-32 h-32 object-contain" />
+        <img src="/presta237-logo.png" alt="PRESTA237" className="w-32 h-32 object-contain" />
         <h1 className="text-2xl font-display font-bold text-foreground text-center">
           {t("Vous êtes hors ligne", "You are offline")}
         </h1>
@@ -235,13 +235,13 @@ const RoleSelection = () => {
               <Shield className="w-6 h-6 text-primary-foreground" />
             </div>
             <span className="text-2xl font-display font-bold text-foreground">
-              TK<span className="text-gradient-gold">LINK</span>
+              PRESTA<span className="text-gradient-gold">237</span>
             </span>
           </div>
 
           <div className="bg-card rounded-2xl border border-border p-8">
             <h1 className="text-2xl font-display font-bold text-foreground text-center mb-2">
-              {t("Comment souhaitez-vous utiliser TKLINK ?", "How would you like to use TKLINK?")}
+              {t("Comment souhaitez-vous utiliser PRESTA237 ?", "How would you like to use PRESTA237?")}
             </h1>
             <p className="text-sm text-muted-foreground text-center mb-8">
               {t("Choisissez votre rôle pour commencer.", "Choose your role to get started.")}
@@ -290,7 +290,7 @@ const RoleSelection = () => {
             <Shield className="w-6 h-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-display font-bold text-foreground">
-            Presta<span className="text-gradient-gold">Link</span>
+            PRESTA<span className="text-gradient-gold">237</span>
           </span>
         </div>
 

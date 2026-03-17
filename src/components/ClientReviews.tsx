@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import { useLang } from "./LanguageToggle";
 
 const placeholderReviews = [
-  { id: "p1", rating: 5, comment: "TKLINK m'a permis de trouver un plombier fiable en 10 minutes. Service au top !", reviewer_name: "Marie K.", created_at: "2025-12-15" },
+  { id: "p1", rating: 5, comment: "PRESTA237 m'a permis de trouver un plombier fiable en 10 minutes. Service au top !", reviewer_name: "Marie K.", created_at: "2025-12-15" },
   { id: "p2", rating: 4, comment: "Plateforme très intuitive, le système de paiement sécurisé me rassure énormément.", reviewer_name: "Paul N.", created_at: "2025-11-20" },
-  { id: "p3", rating: 5, comment: "Grâce à TKLINK j'ai doublé ma clientèle. Indispensable pour les prestataires !", reviewer_name: "Aïcha M.", created_at: "2025-10-08" },
+  { id: "p3", rating: 5, comment: "Grâce à PRESTA237 j'ai doublé ma clientèle. Indispensable pour les prestataires !", reviewer_name: "Aïcha M.", created_at: "2025-10-08" },
 ];
 
 const ClientReviews = () => {
@@ -50,7 +50,7 @@ const ClientReviews = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
-            {t("Ce que nos utilisateurs pensent de TKLINK", "What Our Users Think of TKLINK")}
+            {t("Ce que nos utilisateurs pensent de PRESTA237", "What Our Users Think of PRESTA237")}
           </h2>
           <p className="text-muted-foreground">
             {t("Des avis authentiques de notre communauté", "Authentic reviews from our community")}

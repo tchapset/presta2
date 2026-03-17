@@ -78,7 +78,7 @@ const PublicProfile = () => {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: profile.full_name,
-    description: profile.bio || `Prestataire de services sur TKLINK`,
+    description: profile.bio || `Prestataire de services sur PRESTA237`,
     url: `https://presta2.vercel.app/p/${profile.full_name.toLowerCase().replace(/\s+/g, "-")}`,
     address: {
       "@type": "PostalAddress",
@@ -95,7 +95,7 @@ const PublicProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${profile.full_name} - ${profile.provider_categories?.[0] || "Prestataire"} | TKLINK`}
+        title={`${profile.full_name} - ${profile.provider_categories?.[0] || "Prestataire"} | PRESTA237`}
         description={`${profile.full_name}, ${profile.provider_categories?.[0] || "prestataire"} à ${profile.city || "Cameroun"}. ${profile.bio?.slice(0, 120) || "Consultez le profil et contactez directement."}`}
         jsonLd={jsonLd}
       />

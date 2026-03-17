@@ -26,16 +26,16 @@ const faqSections = [
     icon: HelpCircle,
     questions: [
       {
-        q: "Qu'est-ce que TKLINK ?",
-        a: "TKLINK est une plateforme de mise en relation entre clients et prestataires de services locaux au Cameroun. Elle permet de trouver, contacter et évaluer des professionnels vérifiés.",
+        q: "Qu'est-ce que PRESTA237 ?",
+        a: "PRESTA237 est une plateforme de mise en relation entre clients et prestataires de services locaux au Cameroun. Elle permet de trouver, contacter et évaluer des professionnels vérifiés.",
       },
       {
         q: "L'inscription est-elle gratuite ?",
         a: "Oui, l'inscription est entièrement gratuite pour les clients et les prestataires. Les prestataires peuvent opter pour un abonnement Premium pour plus de visibilité.",
       },
       {
-        q: "Dans quelles villes TKLINK est-il disponible ?",
-        a: "TKLINK est disponible dans les principales villes du Cameroun : Douala, Yaoundé, Bafoussam, Bamenda, Garoua, Maroua, Bertoua, Kribi, Limbé et Buéa.",
+        q: "Dans quelles villes PRESTA237 est-il disponible ?",
+        a: "PRESTA237 est disponible dans les principales villes du Cameroun : Douala, Yaoundé, Bafoussam, Bamenda, Garoua, Maroua, Bertoua, Kribi, Limbé et Buéa.",
       },
     ],
   },
@@ -67,7 +67,7 @@ const faqSections = [
       },
       {
         q: "Comment se passe le paiement ?",
-        a: "Les montants sont gérés via le portefeuille TKLINK. Un acompte est retenu en garantie et le solde est libéré une fois que les deux parties confirment la fin de la mission.",
+        a: "Les montants sont gérés via le portefeuille PRESTA237. Un acompte est retenu en garantie et le solde est libéré une fois que les deux parties confirment la fin de la mission.",
       },
       {
         q: "Que se passe-t-il en cas de litige ?",
@@ -147,8 +147,8 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="FAQ & Support - TKLINK"
-        description="Trouvez des réponses à vos questions sur TKLINK. Centre d'aide et support client pour la plateforme de services au Cameroun."
+        title="FAQ & Support - PRESTA237"
+        description="Trouvez des réponses à vos questions sur PRESTA237. Centre d'aide et support client pour la plateforme de services au Cameroun."
       />
       <Navbar />
       <div className="pt-24 pb-16">

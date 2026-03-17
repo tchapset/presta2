@@ -76,7 +76,7 @@ const AuthPage = () => {
             <Shield className="w-6 h-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-display font-bold text-foreground">
-            Presta<span className="text-gradient-gold">Link</span>
+            PRESTA<span className="text-gradient-gold">237</span>
           </span>
         </Link>
 

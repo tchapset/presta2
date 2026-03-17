@@ -21,8 +21,8 @@ const Footer = () => {
             </h3>
             <p className="text-sm opacity-70 mb-6 max-w-md mx-auto">
               {t(
-                "Rejoignez des milliers d'utilisateurs qui font confiance à TKLINK au Cameroun.",
-                "Join thousands of users who trust TKLINK in Cameroon."
+                "Rejoignez des milliers d'utilisateurs qui font confiance à PRESTA237 au Cameroun.",
+                "Join thousands of users who trust PRESTA237 in Cameroon."
               )}
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
@@ -48,8 +48,8 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-10 mb-10">
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <img src="/serviko-logo.png" alt="TKLINK" className="w-9 h-9 rounded-lg" />
-              <span className="text-xl font-display font-bold">TKLINK</span>
+              <img src="/presta237-logo.png" alt="PRESTA237" className="w-9 h-9 rounded-lg" />
+              <span className="text-xl font-display font-bold">PRESTA237</span>
             </Link>
             <p className="text-sm opacity-70 leading-relaxed">
               {t(
@@ -89,7 +89,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm opacity-50">
-          <span>© 2026 TKLINK. {t("Tous droits réservés.", "All rights reserved.")}</span>
+          <span>© 2026 PRESTA237. {t("Tous droits réservés.", "All rights reserved.")}</span>
           <span className="flex items-center gap-1">
             {t("Fait avec", "Made with")} <Heart className="w-3.5 h-3.5 fill-current text-destructive" /> {t("au Cameroun", "in Cameroon")} 🇨🇲
           </span>

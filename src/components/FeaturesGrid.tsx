@@ -54,7 +54,7 @@ const FeaturesGrid = () => {
           className="text-center mb-12"
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-light text-primary text-sm font-semibold mb-3">
-            {t("Pourquoi TKLINK ?", "Why TKLINK?")}
+            {t("Pourquoi PRESTA237 ?", "Why PRESTA237?")}
           </span>
           <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
             {t("Tout ce qu'il vous faut", "Everything you need")}

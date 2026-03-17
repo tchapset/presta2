@@ -134,7 +134,7 @@ const ProviderProfile = () => {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: profile.full_name,
-    description: profile.bio || `Prestataire de services sur TKLINK`,
+    description: profile.bio || `Prestataire de services sur PRESTA237`,
     address: {
       "@type": "PostalAddress",
       addressLocality: profile.city || "Cameroun",
@@ -150,7 +150,7 @@ const ProviderProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${profile.full_name} - ${profile.provider_categories?.[0] || "Prestataire"} à ${profile.city || "Cameroun"} | TKLINK`}
+        title={`${profile.full_name} - ${profile.provider_categories?.[0] || "Prestataire"} à ${profile.city || "Cameroun"} | PRESTA237`}
         description={`${profile.full_name}, ${profile.provider_categories?.[0] || "prestataire"} à ${profile.city || "Cameroun"}. ${profile.bio?.slice(0, 120) || "Consultez le profil, les avis et contactez directement."}`}
         jsonLd={jsonLd}
       />
@@ -203,7 +203,7 @@ const ProviderProfile = () => {
                     const slug = profile.full_name.toLowerCase().trim().replace(/\s+/g, "-");
                     const shareUrl = `${window.location.origin}/p/${slug}`;
                     if (navigator.share) {
-                      navigator.share({ title: `${profile.full_name} sur TKLINK`, url: shareUrl }).catch(() => {});
+                      navigator.share({ title: `${profile.full_name} sur PRESTA237`, url: shareUrl }).catch(() => {});
                     } else {
                       navigator.clipboard.writeText(shareUrl);
                       toast.success("Lien copié !");

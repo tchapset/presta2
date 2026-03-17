@@ -6,14 +6,14 @@ import { Search, MessageSquare, Star, ArrowRight, X, Sparkles, UserCheck, Shield
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-const ONBOARDING_CLIENT_KEY = "tklink-onboarding-client-done";
-const ONBOARDING_PROVIDER_KEY = "tklink-onboarding-provider-done";
+const ONBOARDING_CLIENT_KEY = "presta237-onboarding-client-done";
+const ONBOARDING_PROVIDER_KEY = "presta237-onboarding-provider-done";
 
 // Client-focused steps
 const clientSteps = [
   {
     icon: Sparkles,
-    title: "Bienvenue sur TKLINK ! 🎉",
+    title: "Bienvenue sur PRESTA237 ! 🎉",
     description: "La plateforme qui connecte clients et prestataires de services au Cameroun. Suivez ce guide rapide.",
     color: "from-primary to-primary/70",
     action: null,
@@ -58,7 +58,7 @@ const providerSteps = [
   {
     icon: Sparkles,
     title: "Bienvenue prestataire ! 🎉",
-    description: "TKLINK vous connecte avec des clients qui ont besoin de vos services. Voici comment tirer le meilleur de la plateforme.",
+    description: "PRESTA237 vous connecte avec des clients qui ont besoin de vos services. Voici comment tirer le meilleur de la plateforme.",
     color: "from-primary to-primary/70",
     action: null,
     actionLabel: null,

@@ -20,7 +20,7 @@ const LoadingScreen = () => {
 
         <div className="flex flex-col items-center gap-2">
           <span className="text-xl font-display font-bold text-foreground">
-            Presta<span className="text-gradient-gold">Link</span>
+            PRESTA<span className="text-gradient-gold">237</span>
           </span>
           <div className="flex gap-1.5">
             {[0, 1, 2].map((i) => (

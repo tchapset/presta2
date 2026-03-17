@@ -277,7 +277,7 @@ const MissionDetail = () => {
     doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
     doc.text(`N° ${invoiceNum}`, 20, 33); doc.text(`Date : ${now}`, 20, 39);
     doc.setFontSize(14); doc.setTextColor(26, 122, 76); doc.setFont("helvetica", "bold");
-    doc.text("TKLINK", 150, 25);
+    doc.text("PRESTA237", 150, 25);
     doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
     doc.text("Marketplace de services", 150, 31); doc.text("Cameroun", 150, 36);
     doc.setDrawColor(200); doc.setLineWidth(0.5); doc.line(20, 45, 190, 45);
@@ -300,7 +300,7 @@ const MissionDetail = () => {
     doc.text(mission.total_amount ? `${mission.total_amount.toLocaleString("fr-FR")} FCFA` : "—", 165, y, { align: "right" });
     y += 10; doc.setDrawColor(200); doc.line(20, y, 190, y); y += 10;
     const commission = (mission.total_amount || 0) * (mission.commission_rate || 10) / 100;
-    doc.text("Commission TKLINK :", 110, y);
+    doc.text("Commission PRESTA237 :", 110, y);
     doc.text(`${commission.toLocaleString("fr-FR")} FCFA`, 165, y, { align: "right" }); y += 8;
     doc.setFont("helvetica", "bold"); doc.setFontSize(11);
     doc.text("Total TTC :", 110, y);
@@ -309,7 +309,7 @@ const MissionDetail = () => {
     doc.text(`Mission créée le : ${new Date(mission.created_at || "").toLocaleDateString("fr-FR")}`, 20, y);
     if (mission.completed_at) doc.text(`Terminée le : ${new Date(mission.completed_at).toLocaleDateString("fr-FR")}`, 20, y + 5);
     doc.setFontSize(7);
-    doc.text("Ce document a été généré automatiquement par TKLINK.", 20, 275);
+    doc.text("Ce document a été généré automatiquement par PRESTA237.", 20, 275);
     doc.text(`Facture ${invoiceNum} — Générée le ${now}`, 20, 280);
     doc.save(`facture-${invoiceNum}.pdf`);
     toast.success("Facture téléchargée !");
@@ -624,7 +624,7 @@ const MissionDetail = () => {
           </DialogHeader>
           {/* Payment advantages */}
           <div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
-            <h4 className="text-sm font-bold text-primary mb-2">🛡️ Pourquoi payer via TKLINK ?</h4>
+            <h4 className="text-sm font-bold text-primary mb-2">🛡️ Pourquoi payer via PRESTA237 ?</h4>
             <ul className="text-xs text-muted-foreground space-y-1">
               <li>✅ <strong>Protection escrow</strong> — vos fonds sont sécurisés jusqu'à validation du travail</li>
               <li>✅ <strong>Remboursement garanti</strong> — litige ? l'admin arbitre et peut vous rembourser</li>
@@ -672,7 +672,7 @@ const MissionDetail = () => {
               {payAmount && parseInt(payAmount) > 0 && (
                 <div className="mt-3 space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Commission TKLINK (10%)</span>
+                    <span className="text-muted-foreground">Commission PRESTA237 (10%)</span>
                     <span className="font-semibold text-foreground">{Math.round(parseInt(payAmount) * 0.1).toLocaleString("fr-FR")} FCFA</span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-1.5">

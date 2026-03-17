@@ -119,8 +119,8 @@ export const usePushNotifications = () => {
           if (document.hidden && permissionGranted.current) {
             const n = new Notification(notification.title, {
               body: notification.message,
-              icon: "/pwa-icon-192.png",
-              tag: `tklink-${Date.now()}`,
+              icon: "/presta237-logo.png",
+              tag: `presta237-${Date.now()}`,
             });
 
             n.onclick = () => {

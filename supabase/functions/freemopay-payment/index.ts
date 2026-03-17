@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
           payer: payer_phone,
           amount: String(amount),
           externalId,
-          description: `Paiement escrow mission Serviko`,
+          description: `Paiement escrow mission PRESTA237`,
           callback: callbackUrl,
         }),
       });

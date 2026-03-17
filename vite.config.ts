@@ -16,15 +16,15 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
+      includeAssets: ["favicon.ico", "presta237-logo.png", "presta237-logo.png"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff2}"],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       manifest: {
-        name: "TKLINK",
-        short_name: "TKLINK",
+        name: "PRESTA237",
+        short_name: "PRESTA237",
         description: "La marketplace sécurisée pour les services locaux au Cameroun",
         theme_color: "#1a7a4c",
         background_color: "#0a0a0a",
@@ -35,17 +35,17 @@ export default defineConfig(({ mode }) => ({
         categories: ["business", "lifestyle"],
         icons: [
           {
-            src: "/pwa-icon-192.png",
+            src: "/presta237-logo.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/pwa-icon-512.png",
+            src: "/presta237-logo.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/pwa-icon-512.png",
+            src: "/presta237-logo.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",

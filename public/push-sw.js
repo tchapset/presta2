@@ -6,20 +6,20 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: "PrestaLink", body: event.data.text() };
+    data = { title: "PRESTA237", body: event.data.text() };
   }
 
   const options = {
     body: data.body || data.message || "",
-    icon: "/pwa-icon-192.png",
-    badge: "/pwa-icon-192.png",
-    tag: data.tag || `prestalink-${Date.now()}`,
+    icon: "/presta237-logo.png",
+    badge: "/presta237-logo.png",
+    tag: data.tag || `presta237-${Date.now()}`,
     data: { url: data.url || data.link || "/" },
     vibrate: [200, 100, 200],
     actions: data.actions || [],
   };
 
-  event.waitUntil(self.registration.showNotification(data.title || "PrestaLink", options));
+  event.waitUntil(self.registration.showNotification(data.title || "PRESTA237", options));
 });
 
 self.addEventListener("notificationclick", (event) => {

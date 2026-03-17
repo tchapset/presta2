@@ -12,7 +12,7 @@ import SEOHead from "@/components/SEOHead";
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "TKLINK",
+  name: "PRESTA237",
   url: "https://presta2.vercel.app",
   description: "La marketplace sécurisée pour les services locaux au Cameroun. Trouvez plombiers, électriciens et prestataires vérifiés.",
   potentialAction: {
@@ -25,9 +25,9 @@ const jsonLd = {
 const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "TKLINK",
+  name: "PRESTA237",
   url: "https://presta2.vercel.app",
-  logo: "https://presta2.vercel.app/serviko-logo.png",
+  logo: "https://presta2.vercel.app/presta237-logo.png",
   sameAs: [],
   contactPoint: {
     "@type": "ContactPoint",
@@ -41,7 +41,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="TKLINK - Services locaux vérifiés au Cameroun"
+        title="PRESTA237 - Services locaux vérifiés au Cameroun"
         description="Trouvez et contactez des prestataires de services vérifiés au Cameroun. Plomberie, électricité, ménage, informatique et plus. Avis clients, paiement sécurisé."
         canonical="https://presta2.vercel.app/"
         jsonLd={[jsonLd, orgJsonLd] as any}

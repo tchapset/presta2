@@ -66,7 +66,7 @@ const PlatformReviewModal = ({ missionId, open, onOpenChange }: PlatformReviewMo
         </DialogHeader>
         <div className="space-y-5 mt-2">
           <p className="text-sm text-muted-foreground text-center">
-            Votre avis nous aide à améliorer TKLINK pour toute la communauté.
+            Votre avis nous aide à améliorer PRESTA237 pour toute la communauté.
           </p>
 
           <div className="flex justify-center gap-3">
@@ -97,7 +97,7 @@ const PlatformReviewModal = ({ missionId, open, onOpenChange }: PlatformReviewMo
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Partagez votre expérience avec TKLINK... (optionnel)"
+            placeholder="Partagez votre expérience avec PRESTA237... (optionnel)"
             rows={3}
           />
 

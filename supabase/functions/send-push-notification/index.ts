@@ -104,7 +104,7 @@ async function sendWebPush(
 
   const jwt = await createJwtToken(
     audience,
-    "mailto:contact@prestalink.app",
+    "mailto:contact@presta237.cm",
     vapidPrivateKeyJwk
   );
 
@@ -201,10 +201,10 @@ Deno.serve(async (req) => {
     }
 
     const payload = JSON.stringify({
-      title: title || "TKLINK",
+      title: title || "PRESTA237",
       body: body || "",
       url: url || link || "/",
-      tag: `tklink-${Date.now()}`,
+      tag: `presta237-${Date.now()}`,
     });
 
     const privateKeyJwk = JSON.parse(vapidPriv.value);

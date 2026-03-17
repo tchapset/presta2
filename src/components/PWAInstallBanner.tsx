@@ -92,14 +92,14 @@ export default function PWAInstallBanner() {
 
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/15 border border-primary/20">
-                    <img src="/serviko-logo.png" alt="TKLINK" className="w-9 h-9 rounded-lg" onError={(e) => {
+                    <img src="/presta237-logo.png" alt="PRESTA237" className="w-9 h-9 rounded-lg" onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                       (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-2xl">🔗</span>';
                     }} />
                   </div>
                   <div>
                     <p className="font-display font-bold text-foreground text-lg leading-tight">
-                      Installer TKLINK
+                      Installer PRESTA237
                     </p>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       Application gratuite
@@ -113,7 +113,7 @@ export default function PWAInstallBanner() {
                 {isIOS ? (
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
-                      Installez TKLINK sur votre écran d'accueil pour un accès rapide :
+                      Installez PRESTA237 sur votre écran d'accueil pour un accès rapide :
                     </p>
                     <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-3">
                       <Share className="h-5 w-5 text-primary shrink-0" />
@@ -129,7 +129,7 @@ export default function PWAInstallBanner() {
                 ) : (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Accédez à TKLINK en un clic, même sans connexion internet.
+                      Accédez à PRESTA237 en un clic, même sans connexion internet.
                     </p>
 
                     {/* Avantages */}

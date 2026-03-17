@@ -330,7 +330,7 @@ const Admin = () => {
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">Panel Administrateur</h1>
-          <p className="text-muted-foreground mb-8">Gestion de la plateforme TKLINK</p>
+          <p className="text-muted-foreground mb-8">Gestion de la plateforme PRESTA237</p>
 
           {/* Stats */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

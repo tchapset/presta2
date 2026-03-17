@@ -116,9 +116,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/serviko-logo.png" alt="TKLINK" className="w-9 h-9 rounded-lg" />
+            <img src="/presta237-logo.png" alt="PRESTA237" className="w-9 h-9 rounded-lg" />
             <span className="text-xl font-display font-bold text-foreground">
-              TK<span className="text-gradient-gold">LINK</span>
+              PRESTA<span className="text-gradient-gold">237</span>
             </span>
           </Link>
 
@@ -232,7 +232,7 @@ const Navbar = () => {
                   <Download className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-foreground">
-                  {t("Installer TKLINK", "Install TKLINK")}
+                  {t("Installer PRESTA237", "Install PRESTA237")}
                 </h3>
                 {isIOS ? (
                   <div className="text-left space-y-3 text-sm text-muted-foreground">
