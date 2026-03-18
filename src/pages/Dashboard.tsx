@@ -154,7 +154,7 @@ const DashboardPage = () => {
                     }
                   }}
                 >
-                  <Share2 className="w-4 h-4" /> {t("Partager", "Share")}
+                  <Share2 className="w-4 h-4" /> {t("", "")}
                 </Button>
               )}
             </div>
