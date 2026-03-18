@@ -1,4 +1,4 @@
-import { Star, Heart, MapPin, Settings, MessageSquare, CheckCircle, Clock, FileText, Wallet } from "lucide-react";
+import { Star, Heart, MapPin, Settings, MessageSquare, CheckCircle, Clock, FileText, Wallet , Share2} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -136,6 +136,27 @@ const DashboardPage = () => {
                   <Settings className="w-4 h-4" /> {t("Paramètres", "Settings")}
                 </Button>
               </Link>
+              {isProvider && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const slug = (profile?.full_name || displayName).toLowerCase().trim()
+                      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    const shareUrl = `https://presta237.com/p/${slug}`;
+                    if (navigator.share) {
+                      navigator.share({ title: `Mon profil sur PRESTA237`, text: `Découvrez mon profil sur PRESTA237`, url: shareUrl }).catch(() => {});
+                    } else {
+                      navigator.clipboard.writeText(shareUrl);
+                      toast.success("Lien copié : " + shareUrl);
+                    }
+                  }}
+                >
+                  <Share2 className="w-4 h-4" /> {t("Partager mon profil", "Share my profile")}
+                </Button>
+              )}
             </div>
           </div>
 
