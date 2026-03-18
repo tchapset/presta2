@@ -52,7 +52,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem(ROLE_CACHE_KEY);
         window.location.href = "/choix-role";
       } else {
-        // Cache that this user has a role
+        // Admin → toujours vers dashboard, jamais vers choix-role
+        if (roles.some(r => r.role === "admin")) {
+          localStorage.setItem(ROLE_CACHE_KEY, userId);
+          // Ne pas rediriger si déjà sur une bonne page
+          const path = window.location.pathname;
+          if (path === "/choix-role") {
+            window.location.href = "/dashboard";
+          }
+          return;
+        }
         localStorage.setItem(ROLE_CACHE_KEY, userId);
       }
     } catch {

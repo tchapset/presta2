@@ -24,6 +24,28 @@ const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<"client" | "provider" | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Rediriger si admin ou si a déjà un rôle
+  useEffect(() => {
+    if (!user) return;
+    const checkRole = async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      if (!data) return;
+      // Si admin → toujours rediriger vers dashboard
+      if (data.some(r => r.role === "admin")) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+      // Si a déjà un rôle client ou provider → rediriger
+      if (data.some(r => r.role === "client" || r.role === "provider")) {
+        navigate("/recherche", { replace: true });
+      }
+    };
+    checkRole();
+  }, [user, navigate]);
+
   const [providerForm, setProviderForm] = useState({
     category: "",
     years_of_experience: "",
@@ -62,10 +84,18 @@ const RoleSelection = () => {
       if (!user) return;
       setLoading(true);
       try {
+        // Vérifier si admin avant d'insérer
+        const { data: existingRoles } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id);
+        if (existingRoles?.some(r => r.role === "admin")) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
         const { error: roleError } = await supabase
           .from("user_roles")
-          .upsert({ user_id: user.id, role: "client" }, { onConflict: "user_id" });
-        if (roleError) throw roleError;
+          .insert({ user_id: user.id, role: "client" })
+          .select();
+        if (roleError && !roleError.message.includes("duplicate")) throw roleError;
 
         await supabase.from("profiles").upsert({
           user_id: user.id,
@@ -223,10 +253,18 @@ const RoleSelection = () => {
     setLoading(true);
 
     try {
+      // Vérifier si admin avant d'insérer
+      const { data: existingRoles } = await supabase
+        .from("user_roles").select("role").eq("user_id", user.id);
+      if (existingRoles?.some(r => r.role === "admin")) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
       const { error: roleError } = await supabase
         .from("user_roles")
-        .upsert({ user_id: user.id, role: selectedRole }, { onConflict: "user_id" });
-      if (roleError) throw roleError;
+        .insert({ user_id: user.id, role: selectedRole })
+        .select();
+      if (roleError && !roleError.message.includes("duplicate")) throw roleError;
 
       if (selectedRole === "provider") {
         const galleryUrls: string[] = [];
