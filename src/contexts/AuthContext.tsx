@@ -27,7 +27,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkRoleAndRedirect = async (userId: string, event: string) => {
     const path = window.location.pathname;
-    // Never redirect if already on these pages or on a provider public profile page
+
+    // Ne jamais rediriger sur ces pages
     if (
       path === "/choix-role" ||
       path.startsWith("/~oauth") ||
@@ -36,10 +37,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       path.startsWith("/p/")
     ) return;
 
-    // For any event other than SIGNED_IN, if we already verified this user has a role, skip
-    if (event !== "SIGNED_IN") {
-      const cached = localStorage.getItem(ROLE_CACHE_KEY);
-      if (cached === userId) return;
+    // Si cache valide → utiliser le cache sans vérifier le serveur
+    const cached = localStorage.getItem(ROLE_CACHE_KEY);
+    if (cached === userId) return;
+
+    // Si hors ligne → utiliser le cache si disponible, sinon ne rien faire
+    if (!navigator.onLine) {
+      console.warn("Offline - using cache for role check");
+      if (cached) return; // cache existe mais pas pour ce userId → ne pas rediriger
+      return; // pas de cache → ne pas rediriger non plus
     }
 
     try {
@@ -49,14 +55,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("user_id", userId);
 
       if (!roles || roles.length === 0) {
-        localStorage.removeItem(ROLE_CACHE_KEY);
-        window.location.href = "/choix-role";
+        // Seulement rediriger si on est en ligne ET pas de rôle
+        if (navigator.onLine) {
+          localStorage.removeItem(ROLE_CACHE_KEY);
+          window.location.href = "/choix-role";
+        }
       } else {
-        // Admin → toujours vers dashboard, jamais vers choix-role
+        // Admin → toujours vers dashboard
         if (roles.some(r => r.role === "admin")) {
           localStorage.setItem(ROLE_CACHE_KEY, userId);
-          // Ne pas rediriger si déjà sur une bonne page
-          const path = window.location.pathname;
           if (path === "/choix-role") {
             window.location.href = "/dashboard";
           }
@@ -65,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem(ROLE_CACHE_KEY, userId);
       }
     } catch {
-      // Network error - don't redirect, user might be offline
+      // Erreur réseau → ne jamais rediriger, garder le cache
       console.warn("Could not check role - possibly offline");
     }
   };
