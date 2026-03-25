@@ -55,6 +55,11 @@ const MissionDetail = () => {
   const queryClient = useQueryClient();
   const [showPlatformReview, setShowPlatformReview] = useState(false);
   const [showPayDialog, setShowPayDialog] = useState(false);
+  const [showPayMethodDialog, setShowPayMethodDialog] = useState(false);
+  const [showCashWarningDialog, setShowCashWarningDialog] = useState(false);
+  const [showCashConfirmDialog, setShowCashConfirmDialog] = useState(false);
+  const [cashAmount, setCashAmount] = useState("");
+  const [cashPaying, setCashPaying] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [showInvoiceDescDialog, setShowInvoiceDescDialog] = useState(false);
   const [invoiceDesc, setInvoiceDesc] = useState("");
@@ -232,6 +237,56 @@ const MissionDetail = () => {
       toast.error(err.message || "Erreur de paiement");
     } finally {
       setPaying(false);
+    }
+  };
+
+  // --- CASH PAYMENT ---
+  const handleCashPayment = async () => {
+    if (!cashAmount || !id || !mission) return;
+    const amount = parseInt(cashAmount);
+    if (isNaN(amount) || amount < 100) {
+      toast.error("Montant invalide (minimum 100 FCFA)");
+      return;
+    }
+    setCashPaying(true);
+    try {
+      const serviceClient = supabase;
+      // Record cash payment as a mission note and update status
+      await serviceClient.from("missions").update({
+        status: "in_progress",
+        total_amount: amount,
+        deposit_amount: amount,
+      }).eq("id", id);
+
+      // Insert notification for both parties
+      const notifications: any[] = [
+        {
+          user_id: mission.client_id,
+          title: "Paiement cash enregistré",
+          message: `Vous avez déclaré avoir payé ${amount.toLocaleString("fr-FR")} FCFA en cash pour "${mission.title}".`,
+          type: "payment",
+          link: `/mission/${id}`,
+        },
+      ];
+      if (mission.provider_id) {
+        notifications.push({
+          user_id: mission.provider_id,
+          title: "Paiement cash reçu",
+          message: `Le client a déclaré vous avoir payé ${amount.toLocaleString("fr-FR")} FCFA en cash pour "${mission.title}".`,
+          type: "payment",
+          link: `/mission/${id}`,
+        });
+      }
+      await serviceClient.from("notifications").insert(notifications);
+
+      toast.success("Paiement cash enregistré. La mission est maintenant en cours.");
+      setShowCashConfirmDialog(false);
+      setCashAmount("");
+      queryClient.invalidateQueries({ queryKey: ["mission", id] });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de l'enregistrement du paiement cash");
+    } finally {
+      setCashPaying(false);
     }
   };
 
@@ -523,7 +578,7 @@ const MissionDetail = () => {
 
                 {/* Client pays */}
                 {isClient && mission.provider_id && ["accepted", "in_progress"].includes(mission.status || "") && !hasEscrow && (
-                  <Button variant="hero" onClick={() => setShowPayDialog(true)} className="gap-2">
+                  <Button variant="hero" onClick={() => setShowPayMethodDialog(true)} className="gap-2">
                     <CreditCard className="w-4 h-4" /> Payer le prestataire
                   </Button>
                 )}
@@ -613,6 +668,168 @@ const MissionDetail = () => {
         </div>
       </div>
 
+      {/* Payment Method Selection Dialog */}
+      <Dialog open={showPayMethodDialog} onOpenChange={setShowPayMethodDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" /> Choisir le mode de paiement
+            </DialogTitle>
+            <DialogDescription>
+              Comment souhaitez-vous payer le prestataire ?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-2">
+            {/* Escrow Option */}
+            <button
+              type="button"
+              onClick={() => { setShowPayMethodDialog(false); setShowPayDialog(true); }}
+              className="flex flex-col gap-3 rounded-2xl border-2 border-primary/40 bg-primary/5 p-5 text-left hover:border-primary hover:bg-primary/10 transition-all duration-200 shadow-sm"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">Paiement Escrow</p>
+                  <p className="text-xs text-primary font-medium">Commission 6% — Recommandé ✅</p>
+                </div>
+              </div>
+              <ul className="text-xs text-muted-foreground space-y-1 pl-1">
+                <li>🔒 Fonds bloqués jusqu'à validation du travail</li>
+                <li>🔄 Remboursement en cas de litige</li>
+                <li>📄 Facture automatique générée</li>
+                <li>📡 Suivi en temps réel du paiement</li>
+              </ul>
+            </button>
+
+            {/* Cash Option */}
+            <button
+              type="button"
+              onClick={() => { setShowPayMethodDialog(false); setShowCashWarningDialog(true); }}
+              className="flex flex-col gap-3 rounded-2xl border-2 border-border bg-muted/30 p-5 text-left hover:border-muted-foreground/40 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Unlock className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">Paiement en Cash</p>
+                  <p className="text-xs text-muted-foreground">Paiement direct, sans protection</p>
+                </div>
+              </div>
+            </button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPayMethodDialog(false)}>Annuler</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash Warning Dialog */}
+      <Dialog open={showCashWarningDialog} onOpenChange={setShowCashWarningDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" /> Attention — Paiement en cash
+            </DialogTitle>
+            <DialogDescription>
+              Avant de continuer, prenez connaissance des risques importants.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+            <p className="text-sm font-bold text-destructive mb-2">⚠️ Inconvénients du paiement en cash :</p>
+            <ul className="text-sm text-foreground space-y-2">
+              <li className="flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <span><strong>Aucune protection</strong> — En cas de travail non fait ou mal fait, vous ne pourrez pas être remboursé via la plateforme.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <span><strong>Aucun arbitrage possible</strong> — Les litiges cash ne peuvent pas être traités par notre équipe d'administration.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <span><strong>Pas de facture officielle</strong> — Aucune preuve de paiement certifiée par PRESTA237 ne sera générée.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <span><strong>Risque d'arnaque</strong> — Le prestataire pourrait disparaître après paiement sans achever le travail.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <span><strong>Aucun suivi</strong> — Le statut de la mission ne sera pas mis à jour automatiquement.</span>
+              </li>
+            </ul>
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Nous vous recommandons vivement d'utiliser l'escrow pour votre sécurité.
+          </p>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="text-destructive border-destructive/40 hover:bg-destructive/10 gap-2 flex-1"
+              onClick={() => { setShowCashWarningDialog(false); setShowCashConfirmDialog(true); }}
+            >
+              Continuer en cash quand même
+            </Button>
+            <Button
+              variant="hero"
+              className="gap-2 flex-1"
+              onClick={() => { setShowCashWarningDialog(false); setShowPayDialog(true); }}
+            >
+              <Shield className="w-4 h-4" /> Utiliser l'Escrow
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash Confirmation Dialog */}
+      <Dialog open={showCashConfirmDialog} onOpenChange={setShowCashConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Unlock className="w-5 h-5 text-muted-foreground" /> Déclarer un paiement en cash
+            </DialogTitle>
+            <DialogDescription>
+              Indiquez le montant que vous avez payé directement au prestataire.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl border border-amber-300/50 bg-amber-50/60 dark:bg-amber-950/20 p-3 text-xs text-amber-800 dark:text-amber-300 mb-2">
+            ⚠️ Ce paiement n'est <strong>pas sécurisé</strong> par PRESTA237. Aucun remboursement possible en cas de litige.
+          </div>
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-xl p-4">
+              <label className="text-sm font-medium text-foreground mb-2 block">Montant payé en cash (FCFA)</label>
+              <Input
+                type="number"
+                value={cashAmount}
+                onChange={(e) => setCashAmount(e.target.value)}
+                placeholder="Ex: 25000"
+                min={100}
+                className="text-lg font-bold h-12"
+              />
+              {cashAmount && parseInt(cashAmount) > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Le prestataire recevra <strong>{parseInt(cashAmount).toLocaleString("fr-FR")} FCFA</strong> — aucune commission prélevée.
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="mt-2">
+            <Button variant="outline" onClick={() => setShowCashConfirmDialog(false)}>Annuler</Button>
+            <Button
+              variant="outline"
+              className="border-amber-400 text-amber-700 hover:bg-amber-50 gap-2"
+              onClick={handleCashPayment}
+              disabled={cashPaying || !cashAmount}
+            >
+              {cashPaying ? <span className="animate-pulse">Enregistrement...</span> : <><Unlock className="w-4 h-4" /> Confirmer le paiement cash</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Payment dialog */}
       <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
         <DialogContent className="max-w-md">
@@ -672,12 +889,12 @@ const MissionDetail = () => {
               {payAmount && parseInt(payAmount) > 0 && (
                 <div className="mt-3 space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Commission PRESTA237 (10%)</span>
-                    <span className="font-semibold text-foreground">{Math.round(parseInt(payAmount) * 0.1).toLocaleString("fr-FR")} FCFA</span>
+                    <span className="text-muted-foreground">Commission PRESTA237 (6%)</span>
+                    <span className="font-semibold text-foreground">{Math.round(parseInt(payAmount) * 0.06).toLocaleString("fr-FR")} FCFA</span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-1.5">
                     <span className="text-muted-foreground">Le prestataire recevra</span>
-                    <span className="font-bold text-green-600">{Math.round(parseInt(payAmount) * 0.9).toLocaleString("fr-FR")} FCFA</span>
+                    <span className="font-bold text-green-600">{Math.round(parseInt(payAmount) * 0.94).toLocaleString("fr-FR")} FCFA</span>
                   </div>
                 </div>
               )}
