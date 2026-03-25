@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const commissionRate = 10;
+      const commissionRate = 6;
       const commissionAmount = Math.round(amount * commissionRate / 100);
       const providerAmount = amount - commissionAmount;
       const externalId = `escrow-${mission_id}-${Date.now()}`;
