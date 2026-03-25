@@ -251,12 +251,29 @@ const MissionDetail = () => {
     setCashPaying(true);
     try {
       const serviceClient = supabase;
-      // Record cash payment as a mission note and update status
+      // Update mission status
       await serviceClient.from("missions").update({
         status: "in_progress",
         total_amount: amount,
         deposit_amount: amount,
       }).eq("id", id);
+
+      // Create a cash escrow record so provider can see the completion button
+      const commissionRate = 10;
+      const commissionAmount = Math.round(amount * commissionRate / 100);
+      const providerAmount = amount - commissionAmount;
+      await serviceClient.from("escrow_payments" as any).insert({
+        mission_id: id,
+        payer_id: user!.id,
+        amount,
+        commission_rate: commissionRate,
+        commission_amount: commissionAmount,
+        provider_amount: providerAmount,
+        status: "held",
+        payer_phone: "cash",
+        freemopay_reference: `cash-${id}-${Date.now()}`,
+        external_id: `cash-${id}-${Date.now()}`,
+      });
 
       // Insert notification for both parties
       const notifications: any[] = [
