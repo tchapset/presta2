@@ -2,16 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 const BackToTop = () => {
   const [show, setShow] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => {
       if (window.scrollY > 400) {
         setShow(true);
-        // Hide after 2s of no scroll
         clearTimeout(hideTimer.current);
         hideTimer.current = setTimeout(() => setShow(false), 2000);
       } else {
@@ -19,12 +20,15 @@ const BackToTop = () => {
         clearTimeout(hideTimer.current);
       }
     };
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       clearTimeout(hideTimer.current);
     };
   }, []);
+
+  // Hide when user is logged in (they have the bottom nav)
+  if (user) return null;
 
   return (
     <AnimatePresence>

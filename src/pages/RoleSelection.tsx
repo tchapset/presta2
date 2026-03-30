@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Shield, User, Wrench, ChevronRight, Upload, X, Plus, MapPin, Car, Phone } from "lucide-react";
+import { Shield, User, Wrench, ChevronRight, Upload, X, Plus, MapPin, Car, Phone, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/components/LanguageToggle";
 import { quartersByCity } from "@/data/quarters";
@@ -585,21 +585,44 @@ const RoleSelection = () => {
 
             {/* Gallery */}
             <div>
-              <Label>{t("Photos de réalisations *", "Portfolio photos *")}</Label>
-              <p className="text-xs text-destructive mb-1">{galleryFiles.length === 0 ? t("Au moins 1 photo est obligatoire", "At least 1 photo is required") : ""}</p>
-              <label className="mt-2 flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
-                <Upload className="w-6 h-6 text-muted-foreground mb-1" />
-                <span className="text-sm text-muted-foreground">{t("Cliquer pour ajouter des photos", "Click to add photos")}</span>
-                <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>{t("Photos de réalisations *", "Portfolio photos *")}</Label>
+                <span className="text-xs text-muted-foreground">{galleryFiles.length}/6 photos</span>
+              </div>
+              {galleryFiles.length === 0 && (
+                <p className="text-xs text-destructive mb-1">{t("Au moins 1 photo est obligatoire", "At least 1 photo is required")}</p>
+              )}
+              {galleryFiles.length > 0 && galleryFiles.length < 6 && (
+                <p className="text-xs text-green-600 mb-1 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" /> {galleryFiles.length} photo{galleryFiles.length > 1 ? "s" : ""} ajoutée{galleryFiles.length > 1 ? "s" : ""} — max 6
+                </p>
+              )}
+              {galleryFiles.length === 6 && (
+                <p className="text-xs text-amber-600 mb-1">Maximum atteint (6 photos)</p>
+              )}
+              {galleryFiles.length < 6 && (
+                <label className="mt-2 flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
+                  <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                  <span className="text-sm text-muted-foreground">{t("Cliquer pour ajouter des photos", "Click to add photos")}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5">Max 6 photos • JPG, PNG</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
+                </label>
+              )}
               {galleryFiles.length > 0 && (
                 <div className="flex gap-2 mt-3 flex-wrap">
                   {galleryFiles.map((f, i) => (
-                    <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border">
-                      <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+                    <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-green-400 shadow-sm">
+                      <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      {/* Green check - shows photo is accepted */}
+                      <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
+                      {/* Remove button - clearly labeled as delete */}
                       <button
+                        type="button"
                         onClick={() => setGalleryFiles((prev) => prev.filter((_, j) => j !== i))}
-                        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                        className="absolute bottom-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                        title="Supprimer"
                       >
                         <X className="w-3 h-3" />
                       </button>

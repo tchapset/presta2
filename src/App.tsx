@@ -25,7 +25,8 @@ import Conversations from "./pages/Conversations";
 import Verification from "./pages/Verification";
 import FAQ from "./pages/FAQ";
 import CategoryPage from "./pages/CategoryPage";
-import ProviderWallet from "./pages/ProviderWallet";
+import MissionWall from "./pages/MissionWall";
+import OfflineBanner from "./components/OfflineBanner";
 import ClientSpending from "./pages/ClientSpending";
 import PublicProfile from "./pages/PublicProfile";
 import GlobalCallListener from "./components/GlobalCallListener";
@@ -34,7 +35,23 @@ import RealtimeMessageToast from "./components/RealtimeMessageToast";
 import OnboardingGuide from "./components/OnboardingGuide";
 import MobileBottomNav from "./components/MobileBottomNav";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+      staleTime: 60000, // 1 min — reduces refetches on slow connections
+      gcTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false, // Avoid unnecessary refetches on 3G
+      networkMode: "offlineFirst",
+    },
+    mutations: {
+      retry: 2,
+      retryDelay: 2000,
+      networkMode: "offlineFirst",
+    },
+  },
+});
 
 function PushNotificationProvider({ children }: { children: React.ReactNode }) {
   usePushNotifications();
@@ -50,6 +67,7 @@ function App() {
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <OfflineBanner />
               <BrowserRouter>
                 <GlobalCallListener />
                 <RealtimeMessageToast />
@@ -77,6 +95,7 @@ function App() {
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/categorie/:name" element={<CategoryPage />} />
                   <Route path="/portefeuille" element={<ProviderWallet />} />
+                  <Route path="/mur-missions" element={<MissionWall />} />
                   <Route path="/depenses" element={<ClientSpending />} />
                   <Route path="/p/:slug" element={<PublicProfile />} />
                   <Route path="*" element={<NotFound />} />

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Users, TrendingUp, Shield, AlertTriangle, DollarSign, Settings, FolderPlus, Trash2, Award, Crown, Star, BarChart3, FileCheck, CheckCircle, XCircle, Eye, Flag, MessageSquare, Wallet, Clock } from "lucide-react";
+import { Users, TrendingUp, Shield, AlertTriangle, DollarSign, Settings, FolderPlus, Trash2, Award, Crown, Star, BarChart3, FileCheck, CheckCircle, XCircle, Eye, Flag, MessageSquare, Wallet, Clock, Search } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -21,6 +21,9 @@ const Admin = () => {
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"users" | "missions" | "disputes" | "categories" | "badges" | "settings" | "nps" | "verifications" | "reports" | "support" | "transfers">("users");
+
+  const [userSearch, setUserSearch] = useState("");
+  const [rejectReasonMap, setRejectReasonMap] = useState<Record<string, string>>({});
 
   const [newCatName, setNewCatName] = useState("");
   const [newCatDesc, setNewCatDesc] = useState("");
@@ -106,12 +109,23 @@ const Admin = () => {
   });
 
   const rejectVerification = useMutation({
-    mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
-      await supabase.from("verification_requests").update({ status: "rejected", rejection_reason: reason || "Rejeté par l'administrateur" }).eq("id", id);
+    mutationFn: async ({ id, reason, userId }: { id: string; reason?: string; userId?: string }) => {
+      const finalReason = reason?.trim() || "Documents insuffisants ou non conformes.";
+      await supabase.from("verification_requests").update({ status: "rejected", rejection_reason: finalReason }).eq("id", id);
+      // Notify user with the reason
+      if (userId) {
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          title: "Demande de vérification refusée",
+          message: `Votre demande de vérification a été refusée. Raison : ${finalReason}. Vous pouvez soumettre une nouvelle demande en corrigeant les documents.`,
+          type: "system",
+          link: "/verification",
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-verifications"] });
-      toast.success("Vérification rejetée");
+      toast.success("Vérification rejetée — utilisateur notifié");
     },
   });
 
@@ -367,6 +381,19 @@ const Admin = () => {
           {/* Users Tab */}
           {activeTab === "users" && (
             <div className="bg-card rounded-2xl border border-border overflow-hidden">
+              {/* Search bar */}
+              <div className="p-4 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher par nom, ville..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border bg-muted/50">
@@ -377,7 +404,15 @@ const Admin = () => {
                     <th className="text-left px-4 py-3 font-semibold text-foreground">Actions</th>
                   </tr></thead>
                   <tbody>
-                    {allProfiles?.map((p) => (
+                    {(allProfiles || [])
+                      .filter(p => {
+                        if (!userSearch.trim()) return true;
+                        const q = userSearch.toLowerCase();
+                        return (p.full_name || "").toLowerCase().includes(q) ||
+                          (p.city || "").toLowerCase().includes(q) ||
+                          (p.phone || "").toLowerCase().includes(q);
+                      })
+                      .map((p) => (
                       <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                         <td className="px-4 py-3 font-medium text-foreground">{p.full_name}</td>
                         <td className="px-4 py-3 text-muted-foreground">{p.city || "—"}</td>
@@ -390,6 +425,13 @@ const Admin = () => {
                         </td>
                       </tr>
                     ))}
+                    {(allProfiles || []).filter(p => {
+                      if (!userSearch.trim()) return false;
+                      const q = userSearch.toLowerCase();
+                      return !((p.full_name || "").toLowerCase().includes(q) || (p.city || "").toLowerCase().includes(q) || (p.phone || "").toLowerCase().includes(q));
+                    }).length === (allProfiles || []).length && userSearch && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Aucun résultat pour "{userSearch}"</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -642,13 +684,22 @@ const Admin = () => {
                           </td>
                           <td className="px-4 py-3">
                             {v.status === "pending" ? (
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="default" className="text-xs gap-1" onClick={() => approveVerification.mutate({ id: v.id, userId: v.user_id })}>
-                                  <CheckCircle className="w-3 h-3" /> Approuver
-                                </Button>
-                                <Button size="sm" variant="destructive" className="text-xs gap-1" onClick={() => rejectVerification.mutate({ id: v.id })}>
-                                  <XCircle className="w-3 h-3" /> Rejeter
-                                </Button>
+                              <div className="flex flex-col gap-2">
+                                <div className="flex gap-1">
+                                  <Button size="sm" variant="default" className="text-xs gap-1" onClick={() => approveVerification.mutate({ id: v.id, userId: v.user_id })}>
+                                    <CheckCircle className="w-3 h-3" /> Approuver
+                                  </Button>
+                                  <Button size="sm" variant="destructive" className="text-xs gap-1" onClick={() => rejectVerification.mutate({ id: v.id, reason: rejectReasonMap[v.id] || "Documents insuffisants ou non conformes.", userId: v.user_id })}>
+                                    <XCircle className="w-3 h-3" /> Rejeter
+                                  </Button>
+                                </div>
+                                <input
+                                  type="text"
+                                  placeholder="Raison du refus..."
+                                  value={rejectReasonMap[v.id] || ""}
+                                  onChange={(e) => setRejectReasonMap(prev => ({ ...prev, [v.id]: e.target.value }))}
+                                  className="text-xs px-2 py-1 rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-destructive/40 w-full"
+                                />
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">{v.rejection_reason || "—"}</span>

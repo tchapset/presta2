@@ -51,7 +51,13 @@ const AuthPage = () => {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       } else {
-        toast.error(error.message || "Une erreur est survenue");
+        // Friendly duplicate email message
+        const msg = error.message || "";
+        if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already been registered") || msg.toLowerCase().includes("user already exists") || msg.includes("23505")) {
+          toast.error("Cette adresse email est déjà utilisée. Essayez de vous connecter ou de réinitialiser votre mot de passe.", { duration: 5000 });
+        } else {
+          toast.error(msg || "Une erreur est survenue");
+        }
       }
     } finally {
       setLoading(false);

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Save, Share2, Upload, X, Plus, MessageCircle, MapPin, Trash2 } from "lucide-react";
+import { Save, Share2, Upload, X, Plus, MessageCircle, MapPin, Trash2, CheckCircle } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -218,8 +218,7 @@ const EditProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast.success("Profil mis à jour !");
-      navigate("/dashboard");
+      toast.success("Profil mis à jour avec succès !");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -250,8 +249,15 @@ const EditProfile = () => {
     const files = Array.from(e.target.files || []);
     if (!user || files.length === 0) return;
     const currentGallery = profile?.gallery || [];
+    if (currentGallery.length >= 6) {
+      toast.error("Maximum 6 photos atteint");
+      return;
+    }
+    const remaining = 6 - currentGallery.length;
+    const filesToUpload = files.slice(0, remaining);
+    toast.loading(`Chargement de ${filesToUpload.length} photo${filesToUpload.length > 1 ? "s" : ""}...`, { id: "gallery-upload" });
     const newUrls: string[] = [];
-    for (const file of files) {
+    for (const file of filesToUpload) {
       const path = `${user.id}/gallery/${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
       if (!error) {
@@ -259,10 +265,10 @@ const EditProfile = () => {
         newUrls.push(publicUrl);
       }
     }
-    const gallery = [...currentGallery, ...newUrls].slice(0, 10);
+    const gallery = [...currentGallery, ...newUrls].slice(0, 6);
     await supabase.from("profiles").update({ gallery }).eq("user_id", user.id);
     queryClient.invalidateQueries({ queryKey: ["profile"] });
-    toast.success("Photos ajoutées");
+    toast.success(`${newUrls.length} photo${newUrls.length > 1 ? "s" : ""} ajoutée${newUrls.length > 1 ? "s" : ""}`, { id: "gallery-upload" });
   };
 
   const toggleCategory = (cat: string) => {
@@ -484,17 +490,38 @@ const EditProfile = () => {
 
                 {/* Gallery */}
                 <div className="bg-card rounded-2xl border border-border p-6">
-                  <Label>Photos de réalisations</Label>
-                  <label className="mt-2 flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
-                    <Upload className="w-5 h-5 text-muted-foreground mb-1" />
-                    <span className="text-sm text-muted-foreground">Ajouter des photos</span>
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Photos de réalisations</Label>
+                    <span className="text-xs text-muted-foreground">{profile?.gallery?.length || 0}/6 photos</span>
+                  </div>
+                  {(profile?.gallery?.length || 0) < 6 && (
+                    <label className="mt-2 flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
+                      <Upload className="w-5 h-5 text-muted-foreground mb-1" />
+                      <span className="text-sm text-muted-foreground">Ajouter des photos (max 6)</span>
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
+                    </label>
+                  )}
                   {profile?.gallery && profile.gallery.length > 0 && (
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {profile.gallery.map((url, i) => (
-                        <div key={i} className="w-20 h-20 rounded-lg overflow-hidden border border-border">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
+                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-green-400 shadow-sm group">
+                          <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                          <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                            <CheckCircle className="w-3 h-3 text-white" />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const newGallery = profile.gallery!.filter((_, j) => j !== i);
+                              await supabase.from("profiles").update({ gallery: newGallery }).eq("user_id", user!.id);
+                              queryClient.invalidateQueries({ queryKey: ["profile"] });
+                              toast.success("Photo supprimée");
+                            }}
+                            className="absolute bottom-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Supprimer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
                         </div>
                       ))}
                     </div>

@@ -97,6 +97,7 @@ const Navbar = () => {
   const links = [
     { to: "/", label: t("Accueil", "Home") },
     { to: "/recherche", label: t("Trouver un prestataire", "Find a Provider") },
+    { to: "/mur-missions", label: t("Mur de missions", "Mission Wall") },
     ...(user ? [
       { to: "/dashboard", label: "Dashboard" },
       { to: "/conversations", label: t("Messages", "Messages"), badge: unreadMsgCount },

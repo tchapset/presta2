@@ -8,6 +8,10 @@ import ClientReviews from "@/components/ClientReviews";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import SEOHead from "@/components/SEOHead";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Briefcase, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -52,6 +56,38 @@ const Index = () => {
         <CategoryGrid />
         <TopProviders />
         <HowItWorks />
+
+        {/* Mission Wall Teaser */}
+        <section className="py-14 bg-gradient-to-br from-primary/5 to-secondary/5">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="flex flex-col md:flex-row items-center justify-between gap-6 bg-card rounded-3xl border border-border p-8 shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Briefcase className="w-7 h-7 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-display font-bold text-foreground mb-1">
+                    Mur de missions
+                  </h2>
+                  <p className="text-muted-foreground text-sm max-w-md">
+                    Publiez votre besoin et laissez les prestataires venir à vous. Des plombiers, électriciens et bien d'autres répondent à vos demandes.
+                  </p>
+                </div>
+              </div>
+              <Link to="/mur-missions">
+                <Button variant="hero" size="lg" className="gap-2 whitespace-nowrap">
+                  Voir les missions <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+
         <FeaturesGrid />
         <ClientReviews />
       </main>
