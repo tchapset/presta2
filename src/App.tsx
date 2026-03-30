@@ -26,6 +26,7 @@ import Verification from "./pages/Verification";
 import FAQ from "./pages/FAQ";
 import CategoryPage from "./pages/CategoryPage";
 import MissionWall from "./pages/MissionWall";
+import ProviderWallet from "./pages/ProviderWallet";
 import OfflineBanner from "./components/OfflineBanner";
 import ClientSpending from "./pages/ClientSpending";
 import PublicProfile from "./pages/PublicProfile";
