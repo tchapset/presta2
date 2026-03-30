@@ -38,17 +38,15 @@ import MobileBottomNav from "./components/MobileBottomNav";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
-      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
-      staleTime: 60000, // 1 min — reduces refetches on slow connections
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+      staleTime: 60000,
       gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false, // Avoid unnecessary refetches on 3G
-      networkMode: "offlineFirst",
+      refetchOnWindowFocus: false,
     },
     mutations: {
-      retry: 2,
+      retry: 1,
       retryDelay: 2000,
-      networkMode: "offlineFirst",
     },
   },
 });
