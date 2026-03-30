@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Shield, CheckCircle, XCircle, Clock, MessageSquare, AlertTriangle, Star, Ban, MapPin, Briefcase, Users, FileText, CreditCard, Lock, Unlock, Timer } from "lucide-react";
+import { Shield, CheckCircle, XCircle, Clock, MessageSquare, AlertTriangle, Star, Ban, MapPin, Briefcase, Users, FileText, CreditCard, Lock, Unlock, Timer, Coins, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import jsPDF from "jspdf";
 import type { Database } from "@/integrations/supabase/types";
@@ -68,6 +68,12 @@ const MissionDetail = () => {
   const [payOperator, setPayOperator] = useState<"orange" | "mtn" | "">("");
   const [disputeReason, setDisputeReason] = useState("");
   const [paying, setPaying] = useState(false);
+  const [showCreditsDialog, setShowCreditsDialog] = useState(false);
+  const [creditsPack, setCreditsPack] = useState<"10"|"25"|"50">("10");
+  const [creditsPhone, setCreditsPhone] = useState("");
+  const [creditsOperator, setCreditsOperator] = useState<"orange"|"mtn"|"">("");
+  const [buyingCredits, setBuyingCredits] = useState(false);
+  const [isCashPaid, setIsCashPaid] = useState(false);
 
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission", id],
@@ -158,6 +164,16 @@ const MissionDetail = () => {
     },
   });
 
+  // Provider credits
+  const { data: providerCredits, refetch: refetchCredits } = useQuery({
+    queryKey: ["provider-credits", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("credits").eq("user_id", user!.id).single();
+      return (data as any)?.credits ?? 0;
+    },
+  });
+
   useEffect(() => {
     if (mission?.status === "completed" && existingPlatformReview === false && user) {
       const dismissKey = `platform-review-dismissed-${id}`;
@@ -180,6 +196,27 @@ const MissionDetail = () => {
 
   const updateStatus = useMutation({
     mutationFn: async (status: MissionStatus) => {
+      // Deduct 2 credits when provider accepts a mission
+      if (status === "accepted" && isProvider) {
+        const currentCredits = providerCredits ?? 0;
+        if (currentCredits < 2) {
+          throw new Error("CREDITS_INSUFFICIENT");
+        }
+        // Deduct credits
+        const { error: creditErr } = await supabase
+          .from("profiles")
+          .update({ credits: currentCredits - 2 })
+          .eq("user_id", user!.id);
+        if (creditErr) throw creditErr;
+        // Log transaction
+        await supabase.from("credit_transactions" as any).insert({
+          user_id: user!.id,
+          amount: -2,
+          type: "mission_deduction",
+          description: `Acceptation de la mission "${mission?.title}"`,
+          mission_id: id,
+        });
+      }
       const updateData: any = { status };
       if (status === "completed") updateData.completed_at = new Date().toISOString();
       const { error } = await supabase.from("missions").update(updateData).eq("id", id!);
@@ -187,11 +224,18 @@ const MissionDetail = () => {
     },
     onSuccess: (_, status) => {
       queryClient.invalidateQueries({ queryKey: ["mission", id] });
+      refetchCredits();
       toast.success("Statut mis à jour");
       const labels: Record<string, string> = { accepted: "Mission acceptée", in_progress: "Travaux démarrés", completed: "Mission terminée", cancelled: "Mission annulée", disputed: "Litige signalé" };
       notifyOtherUser(labels[status] || "Mise à jour", `La mission "${mission?.title}" : ${labels[status] || status}`);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      if (e.message === "CREDITS_INSUFFICIENT") {
+        setShowCreditsDialog(true);
+      } else {
+        toast.error(e.message);
+      }
+    },
   });
 
   // --- ESCROW PAYMENT ---
@@ -250,32 +294,12 @@ const MissionDetail = () => {
     }
     setCashPaying(true);
     try {
-      const serviceClient = supabase;
-      // Update mission status
-      await serviceClient.from("missions").update({
+      await supabase.from("missions").update({
         status: "in_progress",
         total_amount: amount,
         deposit_amount: amount,
       }).eq("id", id);
 
-      // Create a cash escrow record so provider can see the completion button
-      const commissionRate = 10;
-      const commissionAmount = Math.round(amount * commissionRate / 100);
-      const providerAmount = amount - commissionAmount;
-      await serviceClient.from("escrow_payments" as any).insert({
-        mission_id: id,
-        payer_id: user!.id,
-        amount,
-        commission_rate: commissionRate,
-        commission_amount: commissionAmount,
-        provider_amount: providerAmount,
-        status: "held",
-        payer_phone: "cash",
-        freemopay_reference: `cash-${id}-${Date.now()}`,
-        external_id: `cash-${id}-${Date.now()}`,
-      });
-
-      // Insert notification for both parties
       const notifications: any[] = [
         {
           user_id: mission.client_id,
@@ -294,16 +318,60 @@ const MissionDetail = () => {
           link: `/mission/${id}`,
         });
       }
-      await serviceClient.from("notifications").insert(notifications);
+      await supabase.from("notifications").insert(notifications);
 
       toast.success("Paiement cash enregistré. La mission est maintenant en cours.");
       setShowCashConfirmDialog(false);
       setCashAmount("");
+      setIsCashPaid(true);
       queryClient.invalidateQueries({ queryKey: ["mission", id] });
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'enregistrement du paiement cash");
     } finally {
       setCashPaying(false);
+    }
+  };
+
+  // --- BUY CREDITS ---
+  const handleBuyCredits = async () => {
+    if (!creditsPhone || !creditsOperator) {
+      toast.error("Renseignez votre numéro et opérateur");
+      return;
+    }
+    const phone = creditsPhone.replace(/\s/g, "");
+    if (!/^237\d{9}$/.test(phone)) {
+      toast.error("Numéro invalide. Format : 237XXXXXXXXX");
+      return;
+    }
+    setBuyingCredits(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/freemopay-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: "buy_credits",
+            credits_pack: creditsPack,
+            payer_phone: phone,
+            operator: creditsOperator,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur de paiement");
+      toast.success(data.message || "Paiement initié ! Validez sur votre téléphone.");
+      setShowCreditsDialog(false);
+      setCreditsPhone("");
+      setCreditsOperator("");
+    } catch (err: any) {
+      toast.error(err.message || "Erreur de paiement");
+    } finally {
+      setBuyingCredits(false);
     }
   };
 
@@ -583,7 +651,21 @@ const MissionDetail = () => {
                 {/* Provider accepts/starts */}
                 {isProvider && mission.status === "pending" && (
                   <>
-                    <Button variant="hero" onClick={() => updateStatus.mutate("accepted")}>Accepter la mission</Button>
+                    <div className="w-full mb-1">
+                      <div className={`inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full font-medium ${(providerCredits ?? 0) >= 2 ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
+                        <Zap className="w-3.5 h-3.5" />
+                        {providerCredits ?? 0} crédit{(providerCredits ?? 0) > 1 ? "s" : ""} disponible{(providerCredits ?? 0) > 1 ? "s" : ""}
+                        {(providerCredits ?? 0) < 2 && " — insuffisant"}
+                      </div>
+                    </div>
+                    <Button variant="hero" onClick={() => updateStatus.mutate("accepted")} disabled={(providerCredits ?? 0) < 2}>
+                      Accepter la mission <span className="ml-1 opacity-70 text-xs">(-2 crédits)</span>
+                    </Button>
+                    {(providerCredits ?? 0) < 2 && (
+                      <Button variant="outline" className="gap-2 border-primary/40 text-primary" onClick={() => setShowCreditsDialog(true)}>
+                        <Zap className="w-4 h-4" /> Acheter des crédits
+                      </Button>
+                    )}
                     <Button variant="outline" onClick={() => updateStatus.mutate("cancelled")}>Refuser</Button>
                   </>
                 )}
@@ -607,9 +689,15 @@ const MissionDetail = () => {
                   </span>
                 )}
 
-                {/* Provider marks work as done */}
+                {/* Provider marks work as done - escrow */}
                 {isProvider && escrowHeld && (
                   <Button variant="hero" onClick={() => escrowAction("provider_complete")} className="gap-2">
+                    <CheckCircle className="w-4 h-4" /> J'ai terminé le travail
+                  </Button>
+                )}
+                {/* Provider marks work as done - cash */}
+                {isProvider && !hasEscrow && mission.status === "in_progress" && (
+                  <Button variant="hero" onClick={() => updateStatus.mutate("completed")} className="gap-2">
                     <CheckCircle className="w-4 h-4" /> J'ai terminé le travail
                   </Button>
                 )}
@@ -942,6 +1030,79 @@ const MissionDetail = () => {
                   Payer {payAmount ? `${parseInt(payAmount).toLocaleString("fr-FR")} FCFA` : ""}
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credits Purchase Dialog */}
+      <Dialog open={showCreditsDialog} onOpenChange={setShowCreditsDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-primary" /> Acheter des crédits
+            </DialogTitle>
+            <DialogDescription>
+              Vous avez <strong>{providerCredits ?? 0} crédit{(providerCredits ?? 0) > 1 ? "s" : ""}</strong>. Il vous faut 2 crédits pour accepter une mission.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Pack selection */}
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              { pack: "10", credits: 10, amount: 500, label: "Starter" },
+              { pack: "25", credits: 25, amount: 1000, label: "Pro", best: true },
+              { pack: "50", credits: 50, amount: 1800, label: "Expert" },
+            ] as const).map((p) => (
+              <button
+                key={p.pack}
+                type="button"
+                onClick={() => setCreditsPack(p.pack)}
+                className={`relative flex flex-col items-center gap-1 rounded-2xl border-2 p-4 transition-all ${creditsPack === p.pack ? "border-primary bg-primary/10 shadow-lg scale-[1.03]" : "border-border hover:border-primary/40"}`}
+              >
+                {p.best && <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">Populaire</span>}
+                <Zap className={`w-5 h-5 ${creditsPack === p.pack ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="font-bold text-foreground text-lg">{p.credits}</span>
+                <span className="text-xs text-muted-foreground">crédits</span>
+                <span className="text-xs font-semibold text-primary">{p.amount} FCFA</span>
+                <span className="text-[10px] text-muted-foreground">{p.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-3">
+            💡 <strong>1 crédit = 20 FCFA</strong> — Chaque acceptation de mission coûte 2 crédits.
+          </div>
+
+          {/* Operator */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-3 block">Opérateur Mobile Money</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setCreditsOperator("orange")}
+                className={`flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all ${creditsOperator === "orange" ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30" : "border-border hover:border-orange-300"}`}>
+                <img src={orangeLogo} alt="Orange" className="w-8 h-8 object-contain" />
+                <span className="font-medium text-sm">Orange Money</span>
+              </button>
+              <button type="button" onClick={() => setCreditsOperator("mtn")}
+                className={`flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all ${creditsOperator === "mtn" ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30" : "border-border hover:border-yellow-300"}`}>
+                <img src={mtnLogo} alt="MTN" className="w-8 h-8 object-contain" />
+                <span className="font-medium text-sm">MTN MoMo</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1 block">Numéro Mobile Money</label>
+            <Input type="tel" value={creditsPhone} onChange={(e) => setCreditsPhone(e.target.value)}
+              placeholder="237XXXXXXXXX" maxLength={12} className="h-12" />
+            <p className="text-xs text-muted-foreground mt-1">Format : 237 suivi de 9 chiffres</p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreditsDialog(false)}>Annuler</Button>
+            <Button variant="hero" onClick={handleBuyCredits} disabled={buyingCredits || !creditsPhone || !creditsOperator} className="gap-2">
+              {buyingCredits ? <span className="animate-pulse">Traitement...</span> : <><Zap className="w-4 h-4" /> Payer {creditsPack === "10" ? "500" : creditsPack === "25" ? "1 000" : "1 800"} FCFA</>}
             </Button>
           </DialogFooter>
         </DialogContent>

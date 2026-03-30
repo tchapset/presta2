@@ -29,6 +29,59 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Check if this is a credit purchase callback (externalId starts with "credits-")
+    if (externalId && externalId.startsWith("credits-")) {
+      const parts = externalId.split("-");
+      const userId = parts[1];
+
+      if (status === "SUCCESS") {
+        // Find pending credit transaction
+        const { data: pendingTx } = await supabase
+          .from("credit_transactions")
+          .select("*")
+          .eq("user_id", userId)
+          .like("description", `%ref:${reference}%PENDING%`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (pendingTx) {
+          const creditsToAdd = pendingTx.amount;
+
+          // Add credits to profile
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("credits")
+            .eq("user_id", userId)
+            .single();
+
+          await supabase
+            .from("profiles")
+            .update({ credits: (profile?.credits || 0) + creditsToAdd })
+            .eq("user_id", userId);
+
+          // Update transaction description (mark as completed)
+          await supabase
+            .from("credit_transactions")
+            .update({ description: pendingTx.description.replace(" - PENDING", " - COMPLETED") })
+            .eq("id", pendingTx.id);
+
+          await supabase.from("notifications").insert({
+            user_id: userId,
+            title: "Crédits ajoutés ✅",
+            message: `${creditsToAdd} crédits ont été ajoutés à votre compte.`,
+            type: "payment",
+            link: "/tableau-de-bord",
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Check if this is a withdrawal callback (externalId starts with "withdraw-")
     if (externalId && externalId.startsWith("withdraw-")) {
       const transferId = externalId.split("-")[1];

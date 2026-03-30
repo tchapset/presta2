@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Wallet, ArrowUpCircle, ArrowDownCircle, CheckCircle, Clock, AlertCircle, TrendingUp, DollarSign, Calendar, Send, BarChart3, Loader2 } from "lucide-react";
+import { Wallet, ArrowUpCircle, ArrowDownCircle, CheckCircle, Clock, AlertCircle, TrendingUp, DollarSign, Calendar, Send, BarChart3, Loader2, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import LoadingScreen from "@/components/LoadingScreen";
 import mtnLogo from "@/assets/mtn-logo.png";
@@ -33,6 +33,11 @@ const ProviderWallet = () => {
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawName, setWithdrawName] = useState("");
   const [saveInfo, setSaveInfo] = useState(false);
+  const [showBuyCredits, setShowBuyCredits] = useState(false);
+  const [creditsPack, setCreditsPack] = useState<"10"|"25"|"50">("25");
+  const [creditsPhone, setCreditsPhone] = useState("");
+  const [creditsOperator, setCreditsOperator] = useState<"orange"|"mtn"|"">("");
+  const [buyingCredits, setBuyingCredits] = useState(false);
 
   const isProvider = userRole === "provider" || userRole === "both";
 
@@ -42,6 +47,15 @@ const ProviderWallet = () => {
     queryFn: async () => {
       const { data } = await supabase.from("wallets").select("*").eq("user_id", user!.id).single();
       return data;
+    },
+  });
+
+  const { data: providerCredits, refetch: refetchCredits } = useQuery({
+    queryKey: ["provider-credits", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("credits").eq("user_id", user!.id).single();
+      return (data as any)?.credits ?? 0;
     },
   });
 
@@ -164,6 +178,41 @@ const ProviderWallet = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const handleBuyCredits = async () => {
+    if (!creditsPhone || !creditsOperator) {
+      toast.error("Renseignez votre numéro et opérateur");
+      return;
+    }
+    const phone = creditsPhone.replace(/\s/g, "");
+    if (!/^237\d{9}$/.test(phone)) {
+      toast.error("Numéro invalide. Format : 237XXXXXXXXX");
+      return;
+    }
+    setBuyingCredits(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/freemopay-payment`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+          body: JSON.stringify({ action: "buy_credits", credits_pack: creditsPack, payer_phone: phone, operator: creditsOperator }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur de paiement");
+      toast.success(data.message || "Paiement initié ! Validez sur votre téléphone.");
+      setShowBuyCredits(false);
+      setCreditsPhone("");
+      setCreditsOperator("");
+      setTimeout(() => refetchCredits(), 3000);
+    } catch (err: any) {
+      toast.error(err.message || "Erreur de paiement");
+    } finally {
+      setBuyingCredits(false);
+    }
+  };
+
   if (authLoading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
 
@@ -244,6 +293,33 @@ const ProviderWallet = () => {
               <p className="text-xl font-display font-bold text-foreground">{formatAmount(totalWithdrawn)}</p>
             </motion.div>
           </div>
+
+          {/* Credits Card */}
+          {isProvider && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+              className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-primary/20 p-6 mb-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Crédits disponibles</p>
+                    <p className="text-3xl font-display font-bold text-primary">{providerCredits ?? 0}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">2 crédits par mission acceptée</p>
+                  </div>
+                </div>
+                <Button variant="hero" size="sm" className="gap-2" onClick={() => setShowBuyCredits(true)}>
+                  <Zap className="w-4 h-4" /> Acheter des crédits
+                </Button>
+              </div>
+              {(providerCredits ?? 0) < 4 && (
+                <div className="mt-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-300">
+                  ⚠️ Crédits bientôt épuisés — achetez des crédits pour continuer à accepter des missions.
+                </div>
+              )}
+            </motion.div>
+          )}
 
           {/* Monthly Revenue Bar Chart */}
           {transactions && transactions.length > 0 && (() => {
@@ -468,6 +544,74 @@ const ProviderWallet = () => {
               className="gap-2"
             >
               {withdrawMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("Traitement...", "Processing...")}</> : t("Envoyer la demande", "Send request")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Buy Credits Dialog */}
+      <Dialog open={showBuyCredits} onOpenChange={setShowBuyCredits}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-primary" /> Acheter des crédits
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Vous avez actuellement <strong className="text-primary">{providerCredits ?? 0} crédit{(providerCredits ?? 0) > 1 ? "s" : ""}</strong>. Chaque mission acceptée coûte 2 crédits.</p>
+
+          {/* Packs */}
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              { pack: "10", credits: 10, amount: 500, label: "Starter" },
+              { pack: "25", credits: 25, amount: 1000, label: "Pro", best: true },
+              { pack: "50", credits: 50, amount: 1800, label: "Expert" },
+            ] as const).map((p) => (
+              <button key={p.pack} type="button" onClick={() => setCreditsPack(p.pack)}
+                className={`relative flex flex-col items-center gap-1 rounded-2xl border-2 p-4 transition-all ${creditsPack === p.pack ? "border-primary bg-primary/10 shadow-lg scale-[1.03]" : "border-border hover:border-primary/40"}`}>
+                {p.best && <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">Populaire</span>}
+                <Zap className={`w-5 h-5 ${creditsPack === p.pack ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="font-bold text-foreground text-lg">{p.credits}</span>
+                <span className="text-xs text-muted-foreground">crédits</span>
+                <span className="text-xs font-semibold text-primary">{p.amount} FCFA</span>
+                <span className="text-[10px] text-muted-foreground">{p.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-3">
+            💡 <strong>1 crédit ≈ 20–36 FCFA</strong> selon le pack — Plus vous achetez, plus c'est économique.
+          </div>
+
+          {/* Operator */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-3 block">Opérateur Mobile Money</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setCreditsOperator("orange")}
+                className={`flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all ${creditsOperator === "orange" ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30" : "border-border hover:border-orange-300"}`}>
+                <img src={orangeLogo} alt="Orange" className="w-8 h-8 object-contain" />
+                <span className="font-medium text-sm">Orange Money</span>
+              </button>
+              <button type="button" onClick={() => setCreditsOperator("mtn")}
+                className={`flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all ${creditsOperator === "mtn" ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30" : "border-border hover:border-yellow-300"}`}>
+                <img src={mtnLogo} alt="MTN" className="w-8 h-8 object-contain" />
+                <span className="font-medium text-sm">MTN MoMo</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1 block">Numéro Mobile Money</label>
+            <input type="tel" value={creditsPhone} onChange={(e) => setCreditsPhone(e.target.value)}
+              placeholder="237XXXXXXXXX" maxLength={12}
+              className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            <p className="text-xs text-muted-foreground mt-1">Format : 237 suivi de 9 chiffres</p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBuyCredits(false)}>Annuler</Button>
+            <Button variant="hero" onClick={handleBuyCredits} disabled={buyingCredits || !creditsPhone || !creditsOperator} className="gap-2">
+              {buyingCredits ? <><Loader2 className="w-4 h-4 animate-spin" /> Traitement...</> : <><Zap className="w-4 h-4" /> Payer {creditsPack === "10" ? "500" : creditsPack === "25" ? "1 000" : "1 800"} FCFA</>}
             </Button>
           </DialogFooter>
         </DialogContent>
